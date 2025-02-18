@@ -1,0 +1,22 @@
+# Системные файлы
+.idea/
+.vscode/
+.DS_Store
+
+# Файлы окружения Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Логи
+*.log
+
+# Кэш браузера
+*.cache
+
+# Настройки PyCharm
+*.iml
+
+# Файлы ОС
+Thumbs.db
