@@ -1,9 +1,12 @@
-from locators.locators import Locators, AccountPageLocators, MainPageLocators
+import logging
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from locators.locators import Locators, MainPageLocators
 from data import UrlList, Data
 
+# Настраиваем логгер
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class TestNavigation:
 
@@ -11,74 +14,51 @@ class TestNavigation:
         """Тест перехода в личный кабинет"""
         driver.get(UrlList.page_main_url)
 
-        # ✅ Ожидаем появления кнопки "Личный кабинет"
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(MainPageLocators.PERSONAL_ACCOUNT_BUTTON))
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)).click()
+        WebDriverWait(driver, 10).until(EC.url_contains("/account"))
 
-        # ✅ Пробуем несколько раз кликнуть, если первый клик не сработал
-        personal_account_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
-        )
-        try:
-            personal_account_button.click()
-        except TimeoutException:
-            driver.execute_script("arguments[0].click();", personal_account_button)
-
-        # ✅ Ожидаем редирект (два возможных варианта URL)
-        try:
-            WebDriverWait(driver, 10).until(EC.url_contains("/account"))
-        except TimeoutException:
-            WebDriverWait(driver, 10).until(EC.url_contains("/account/profile"))
-
-        # ✅ Логируем текущий URL
         current_url = driver.current_url
-        print(f"Текущий URL: {current_url}")
+        logger.info(f"Текущий URL: {current_url}")
 
-        # ✅ Проверяем, что мы действительно на странице аккаунта
-        assert any(substring in current_url for substring in ["/account", "/account/profile"]), \
-            f"Неправильный URL: {current_url}"
+        assert "/account" in current_url or "/account/profile" in current_url, f"Неправильный URL: {current_url}"
 
     def test_go_to_constructor(self, driver):
         """Тест перехода в конструктор из личного кабинета"""
         driver.get(UrlList.page_main_url)
-
-        # ✅ Авторизация перед переходом в аккаунт
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(Locators.login_button_main)).click()
-        driver.find_element(*Locators.input_email_field).send_keys(Data.email)
-        driver.find_element(*Locators.input_password_field).send_keys(Data.password)
-        driver.find_element(*Locators.login_button_login_page).click()
-
-        # ✅ Ждем входа и переходим в аккаунт
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(Locators.order_button))
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)).click()
-
-        # ✅ Переход в конструктор
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable(MainPageLocators.CONSTRUCTOR_BUTTON)).click()
 
-        # ✅ Проверка URL
         WebDriverWait(driver, 10).until(EC.url_to_be(UrlList.page_main_url))
         assert driver.current_url == UrlList.page_main_url
 
     def test_go_to_main_by_logo(self, driver):
         """Тест перехода на главную страницу через логотип"""
         driver.get(UrlList.page_main_url)
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(MainPageLocators.LOGO_BUTTON)).click()
 
-        # ✅ Авторизация перед переходом
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(Locators.login_button_main)).click()
-        driver.find_element(*Locators.input_email_field).send_keys(Data.email)
-        driver.find_element(*Locators.input_password_field).send_keys(Data.password)
-        driver.find_element(*Locators.login_button_login_page).click()
-
-        # ✅ Ждем входа и переходим в аккаунт
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(Locators.order_button))
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)).click()
-
-        # ✅ Ожидаем появления логотипа и кликаем
-        logo_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(MainPageLocators.LOGO_BUTTON))
-        try:
-            logo_button.click()
-        except TimeoutException:
-            driver.execute_script("arguments[0].click();", logo_button)
-
-        # ✅ Ожидаем загрузки главной страницы
         WebDriverWait(driver, 10).until(EC.url_to_be(UrlList.page_main_url))
         assert driver.current_url == UrlList.page_main_url
+
+    # 🆕 **Тест переходов по разделам в конструкторе**
+    def test_go_to_buns_section(self, driver):
+        """Тест переключения в раздел 'Булки'"""
+        driver.get(UrlList.page_main_url)
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(Locators.buns_span)).click()
+
+        active_tab = WebDriverWait(driver, 5).until(EC.visibility_of_element_located(Locators.select_tab_constructor))
+        assert active_tab.text == "Булки", "Раздел 'Булки' не активен!"
+
+    def test_go_to_sauces_section(self, driver):
+        """Тест переключения в раздел 'Соусы'"""
+        driver.get(UrlList.page_main_url)
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(Locators.sauces_span)).click()
+
+        active_tab = WebDriverWait(driver, 5).until(EC.visibility_of_element_located(Locators.select_tab_constructor))
+        assert active_tab.text == "Соусы", "Раздел 'Соусы' не активен!"
+
+    def test_go_to_fillings_section(self, driver):
+        """Тест переключения в раздел 'Начинки'"""
+        driver.get(UrlList.page_main_url)
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(Locators.filling_span)).click()
+
+        active_tab = WebDriverWait(driver, 5).until(EC.visibility_of_element_located(Locators.select_tab_constructor))
+        assert active_tab.text == "Начинки", "Раздел 'Начинки' не активен!"

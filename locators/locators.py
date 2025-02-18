@@ -23,9 +23,9 @@ class Locators:
     recovery_pass_button = (By.XPATH, "//button[contains(text(),'Восстановить')]")
     profile_link = (By.XPATH, "//a[contains(text(),'Профиль')]")
 
-    # Ошибки и уведомления
-    incorrect_password_message = (By.XPATH, "//p[contains(text(),'Некорректный пароль')]")
-    user_exists_message = (By.XPATH, "//div/main/div/p[contains(text(),'Такой пользователь уже существует')]")
+    # 🛠 Исправленные ошибки и уведомления
+    incorrect_password_message = (By.XPATH, "//p[contains(@class, 'error') and contains(text(),'Некорректный пароль')]")
+    user_exists_message = (By.XPATH, "//p[contains(@class, 'error') and contains(text(),'Такой пользователь уже существует')]")
 
     # Навигация
     constructor_button = (By.XPATH, "//p[contains(text(),'Конструктор')]")
