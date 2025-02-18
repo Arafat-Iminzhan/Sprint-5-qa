@@ -11,7 +11,7 @@ def example_function():
     return "This is a helper function"
 
 def mail_with_error_domain():
-    return "testuser@invalid"
+    return f"{random_name()}@invalid"  # ✅ Динамическое создание email с ошибкой
 
 def random_name():
     return ''.join(random.choices(string.ascii_letters, k=8))
